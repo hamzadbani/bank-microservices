@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+
+  accounts:
+    image: hamzadb/accounts:latest
+    mem_limit: 700m
+    ports:
+      - "8080:8080"
+    networks:
+      - hamzadb-network
+    
+  loans:
+    image: hamzadb/loans:latest
+    mem_limit: 700m
+    ports:
+      - "8090:8090"
+    networks:
+      - hamzadb-network
+    
+  cards:
+    image: hamzadb/cards:latest
+    mem_limit: 700m
+    ports:
+      - "9000:9000"
+    networks:
+      - hamzadb-network
+    
+networks:
+  hamzadb-network:

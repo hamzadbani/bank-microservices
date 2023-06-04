@@ -10,10 +10,7 @@ import com.microservices.cards.entityDTO.Properties;
 import com.microservices.cards.service.CardsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -29,7 +26,9 @@ public class CardController {
     }
 
     @PostMapping("/myCards")
-    public ResponseEntity<List<Cards>> getCardDetails(@RequestBody Customer customer) {
+    public ResponseEntity<List<Cards>> getCardDetails(
+            @RequestHeader("microservices-correlation-id") String correlationId,
+            @RequestBody Customer customer) {
 
         List<Cards> cards = cardsService.getCardDetails(customer.getCustomerId());
         return ResponseEntity.status(HttpStatus.OK).body(cards);

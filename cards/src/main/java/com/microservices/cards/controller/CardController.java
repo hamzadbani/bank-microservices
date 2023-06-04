@@ -8,6 +8,8 @@ import com.microservices.cards.entity.Cards;
 import com.microservices.cards.entity.Customer;
 import com.microservices.cards.entityDTO.Properties;
 import com.microservices.cards.service.CardsService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +22,8 @@ public class CardController {
     private final CardsService cardsService;
     private final CardsServiceConfig cardsServiceConfig;
 
+    private static final Logger logger = LoggerFactory.getLogger(CardController.class);
+
     public CardController(CardsService cardsService, CardsServiceConfig cardsServiceConfig) {
         this.cardsService = cardsService;
         this.cardsServiceConfig = cardsServiceConfig;
@@ -29,8 +33,9 @@ public class CardController {
     public ResponseEntity<List<Cards>> getCardDetails(
             @RequestHeader("microservices-correlation-id") String correlationId,
             @RequestBody Customer customer) {
-
+        logger.info("getCardDetails() method started");
         List<Cards> cards = cardsService.getCardDetails(customer.getCustomerId());
+        logger.info("getCardDetails() method ended");
         return ResponseEntity.status(HttpStatus.OK).body(cards);
     }
 

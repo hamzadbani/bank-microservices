@@ -9,6 +9,8 @@ import com.microservices.accounts.response.CustomerDetails;
 import com.microservices.accounts.service.AccountsService;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +28,7 @@ public class AccountsController {
     private final AccountsService accountsService;
     private final AccountsServiceConfig accountsServiceConfig;
 
+    private static final Logger logger = LoggerFactory.getLogger(AccountsController.class);
     public AccountsController(AccountsService accountsService, AccountsServiceConfig accountsServiceConfig) {
         this.accountsService = accountsService;
         this.accountsServiceConfig = accountsServiceConfig;
@@ -51,7 +54,9 @@ public class AccountsController {
     public ResponseEntity<CustomerDetails> getCustomerDetails(
             @RequestHeader("microservices-correlation-id") String correlationId,
             @RequestBody Customer customer) {
+        logger.info("getCustomerDetails() method started");
         CustomerDetails customerDetails = accountsService.getCustomerDetails(correlationId, customer);
+        logger.info("getCustomerDetails() method ended");
         return ResponseEntity.status(HttpStatus.OK).body(customerDetails);
     }
     private ResponseEntity<CustomerDetails> myCustomerDetailsFallBack(String correlationId, Customer customer, Throwable t) {

@@ -38,11 +38,11 @@ public class AccountsService {
         }
     }
 
-    public CustomerDetails getCustomerDetails(Customer customer) {
+    public CustomerDetails getCustomerDetails(String correlationId, Customer customer) {
         try {
             Accounts accounts = accountsRepository.findByCustomerId(customer.getCustomerId());
-            List<Loans> loans = loansFeignClient.getLoansDetails(customer);
-            List<Cards> cards = cardsFeignClient.getCardDetails(customer);
+            List<Loans> loans = loansFeignClient.getLoansDetails(correlationId, customer);
+            List<Cards> cards = cardsFeignClient.getCardDetails(correlationId, customer);
 
             return CustomerDetails.builder().
                     accounts(accounts).
@@ -52,6 +52,20 @@ public class AccountsService {
         } catch (AccountsException e) {
             log.error("[getCustomerDetails] Exception occur while getting customer details");
             throw new AccountsException("Exception occur while getting customer details, reason: " + e.getMessage());
+        }
+    }
+
+    public CustomerDetails getCustomerDetailsFallBack(String correlationId, Customer customer) {
+        try {
+            Accounts accounts = accountsRepository.findByCustomerId(customer.getCustomerId());
+            List<Loans> loans = loansFeignClient.getLoansDetails(correlationId, customer);
+            return CustomerDetails.builder().
+                    accounts(accounts).
+                    loans(loans).
+                    build();
+        } catch (AccountsException e) {
+            log.error("[getCustomerDetailsFallBack] Exception occur while getting customer details fallback");
+            throw new AccountsException("Exception occur while getting customer details fallback, reason: " + e.getMessage());
         }
     }
 }

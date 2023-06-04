@@ -7,12 +7,15 @@ import com.microservices.accounts.entity.Customer;
 import com.microservices.accounts.entityDTO.Properties;
 import com.microservices.accounts.response.CustomerDetails;
 import com.microservices.accounts.service.AccountsService;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -43,8 +46,26 @@ public class AccountsController {
     }
 
     @PostMapping("/customer/details")
-    public ResponseEntity<CustomerDetails> getCustomerDetails(@RequestBody Customer customer) {
-        CustomerDetails customerDetails = accountsService.getCustomerDetails(customer);
+    //@CircuitBreaker(name = "detailsForCustomerSupportApp", fallbackMethod = "myCustomerDetailsFallBack")
+    @Retry(name = "detailsForCustomerSupportApp", fallbackMethod = "myCustomerDetailsFallBack")
+    public ResponseEntity<CustomerDetails> getCustomerDetails(
+            @RequestHeader("microservices-correlation-id") String correlationId,
+            @RequestBody Customer customer) {
+        CustomerDetails customerDetails = accountsService.getCustomerDetails(correlationId, customer);
         return ResponseEntity.status(HttpStatus.OK).body(customerDetails);
+    }
+    private ResponseEntity<CustomerDetails> myCustomerDetailsFallBack(String correlationId, Customer customer, Throwable t) {
+        CustomerDetails customerDetails = accountsService.getCustomerDetailsFallBack(correlationId, customer);
+        return ResponseEntity.status(HttpStatus.OK).body(customerDetails);
+    }
+
+    @GetMapping("/sayHello")
+    @RateLimiter(name = "sayHello", fallbackMethod = "sayHelloFallback")
+    public String sayHello() {
+        return "Hello, Welcome to microservices app";
+    }
+
+    private String sayHelloFallback(Throwable t) {
+        return "Hi, Welcome to microservices app";
     }
 }
